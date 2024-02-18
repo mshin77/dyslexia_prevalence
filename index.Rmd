@@ -73,30 +73,36 @@ data <- data %>%
 
 ```{r, echo = FALSE, eval = FALSE}
 geom_line_plot <- data %>%
-    group_by(NCES_district_locale, school_year) %>%
-    summarize(rate = mean(prevalence_rate)) %>%
-    ggplot(aes(x = school_year, y = rate, group = NCES_district_locale, color = NCES_district_locale)) +
-    geom_line() + 
-    labs(title = "",
-         x = "School Year",
-         y = "Prevalence Rate (%)") +
-    theme_minimal(base_size = 11) +
-    theme(
-        plot.title = element_text(face = "bold", size = 11),
-        legend.position ="top",
-        legend.text = element_text(size = 11),
-        legend.title = element_text(size = 11),
-        legend.title.align = 0.5,
-        axis.line = element_line(),          
-        strip.text.x = element_text(color = "#3B3B3B", size = 11),
-        axis.line.x = element_line(color = "#3B3B3B"),
-        axis.text.x = element_text(size = 11, color = "#3B3B3B", angle = 45, hjust = 1),
-        axis.ticks = element_line(color = "#3B3B3B"),
-        axis.ticks.length = unit(0.1, "cm"),  
-        axis.text.y = element_text(size = 11, color = "#3B3B3B"),
-        axis.title = element_text(face = "bold", size = 11, color = "#3B3B3B")
-    ) + 
-    labs(color = "District Locale")
+  group_by(NCES_district_locale, school_year) %>%
+  summarize(rate = mean(prevalence_rate)) %>%
+  ungroup() %>%
+  ggplot(aes(x = school_year, y = rate, group = NCES_district_locale, color = NCES_district_locale)) +
+  geom_line() +
+  geom_line(data = data %>%
+              group_by(school_year) %>%
+              summarize(rate = mean(prevalence_rate)),
+            aes(x = school_year, y = rate, group = 1), 
+            color = "black", size = 1.5, linetype = "solid") +
+  labs(title = "",
+       x = "School Year",
+       y = "Prevalence Rate (%)") +
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.title = element_text(face = "bold", size = 11),
+    legend.position ="top",
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 11),
+    legend.title.align = 0.5,
+    axis.line = element_line(),          
+    strip.text.x = element_text(color = "#3B3B3B", size = 11),
+    axis.line.x = element_line(color = "#3B3B3B"),
+    axis.text.x = element_text(size = 11, color = "#3B3B3B", angle = 45, hjust = 1),
+    axis.ticks = element_line(color = "#3B3B3B"),
+    axis.ticks.length = unit(0.1, "cm"),  
+    axis.text.y = element_text(size = 11, color = "#3B3B3B"),
+    axis.title = element_text(face = "bold", size = 11, color = "#3B3B3B")
+  ) + 
+  labs(color = "District Locale") 
 ```
 
 
@@ -106,30 +112,30 @@ geom_line_plot %>% ggplotly()
 
 ```{r, echo = FALSE, eval = FALSE}
 geom_col_plot <- data %>%
-    group_by(NCES_district_locale, school_year) %>%
-    summarize(rate = mean(prevalence_rate)) %>%
-    ggplot(aes(x = school_year, y = rate, group = NCES_district_locale, color = NCES_district_locale)) +
-    geom_col(aes(fill = NCES_district_locale)) + 
-    labs(title = "",
-         x = "School Year",
-         y = "Prevalence Rate (%)") +
-    theme_minimal(base_size = 11) +
-    theme(
-        plot.title = element_text(face = "bold", size = 11),
-        legend.position ="top",
-        legend.text = element_text(size = 11),
-        legend.title = element_text(size = 11),
-        legend.title.align = 0.5,
-        axis.line = element_line(),          
-        strip.text.x = element_text(color = "#3B3B3B", size = 11),
-        axis.line.x = element_line(color = "#3B3B3B"),
-        axis.text.x = element_text(size = 11, color = "#3B3B3B", angle = 45, hjust = 1),
-        axis.ticks = element_line(color = "#3B3B3B"),
-        axis.ticks.length = unit(0.1, "cm"),  
-        axis.text.y = element_text(size = 11, color = "#3B3B3B"),
-        axis.title = element_text(face = "bold", size = 11, color = "#3B3B3B")
-    ) +
-    labs(fill = "District Locale", color = "District Locale")
+  group_by(NCES_district_locale, school_year) %>%
+  summarize(rate = mean(prevalence_rate)) %>%
+  ggplot(aes(x = school_year, y = rate, group = NCES_district_locale, color = NCES_district_locale)) +
+  geom_col(aes(fill = NCES_district_locale)) + 
+  labs(title = "",
+       x = "School Year",
+       y = "Prevalence Rate (%)") +
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.title = element_text(face = "bold", size = 11),
+    legend.position ="top",
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 11),
+    legend.title.align = 0.5,
+    axis.line = element_line(),          
+    strip.text.x = element_text(color = "#3B3B3B", size = 11),
+    axis.line.x = element_line(color = "#3B3B3B"),
+    axis.text.x = element_text(size = 11, color = "#3B3B3B", angle = 45, hjust = 1),
+    axis.ticks = element_line(color = "#3B3B3B"),
+    axis.ticks.length = unit(0.1, "cm"),  
+    axis.text.y = element_text(size = 11, color = "#3B3B3B"),
+    axis.title = element_text(face = "bold", size = 11, color = "#3B3B3B")
+  ) +
+  labs(fill = "District Locale", color = "District Locale")
 ```
 
 
@@ -143,19 +149,19 @@ geom_col_plot %>% ggplotly()
 
 ```{r, eval = FALSE}
 Model.1 <- lme(
-    prevalence_rate ~ slope_2017 + slope_change_2018 + slope_change_2019 + 
-        slope_change_2020 + slope_change_2021 + slope_change_2022, 
-    data = data,
-    method = "REML",
-    random = ~ 1 | district,
-    correlation = corAR1(value = 0.2, form = ~ year | district),
-    control = list(
-        maxIter = 100, 
-        msMaxIter = 100, 
-        tolerance = 1e-3, 
-        opt = "optim",
-        optimMethod = "BFGS"
-    )
+  prevalence_rate ~ slope_2017 + slope_change_2018 + slope_change_2019 + 
+    slope_change_2020 + slope_change_2021 + slope_change_2022, 
+  data = data,
+  method = "REML",
+  random = ~ 1 | district,
+  correlation = corAR1(value = 0.2, form = ~ year | district),
+  control = list(
+    maxIter = 100, 
+    msMaxIter = 100, 
+    tolerance = 1e-3, 
+    opt = "optim",
+    optimMethod = "BFGS"
+  )
 )
 ```
 
@@ -165,7 +171,7 @@ Model.1 <- lme(
 options(width = 100)
 Model.1.vcov <- vcovCR(Model.1, type = "CR2") # Calculate variance-covariance matrix
 Model.1.crve <-
-    coef_test(Model.1, vcov = Model.1.vcov , test = "Satterthwaite") # Test regression coefficients 
+  coef_test(Model.1, vcov = Model.1.vcov , test = "Satterthwaite") # Test regression coefficients 
 Model.1.crve
 ```
 
@@ -232,7 +238,7 @@ VarCorr(Model.2, which = "var-cov")
 sqrt(diag(varcomp_vcov(Model.2)))
 ```
 
-```{r}
-save(geom_line_plot, geom_col_plot, Model.1, Model.2, file = "output.RData")
+```{r, echo = FALSE, eval = FALSE}
+# save(geom_line_plot, geom_col_plot, Model.1, Model.2, file = "output.RData")
 ```
 

@@ -1,0 +1,296 @@
+---
+title: "Dyslexia Identification: Texas Legislative Trends in Prevalence Rate of Students by School District Locale"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc_float: true
+    code_folding: show
+    self_contained: false
+---
+
+This webpage contains outputs and R codes used for the two-level multilevel modeling in Authors (2024). Data analysis scripts have been posted through an online data repository, accessible at <https://osf.io/gqpfk/?view_only=32be323dc9a6471c9bd721415c24debc>.
+
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  cache = TRUE,
+  message = FALSE, 
+  warning = FALSE)
+```
+
+# Data Analysis {.tabset}
+
+## Preprocess 
+
+#### Load libraries.
+
+```{r}
+suppressPackageStartupMessages({
+    library(tidyverse)
+    library(dplyr)
+    library(fastDummies)
+    library(nlme)
+    library(lmeInfo)
+    library(clubSandwich)
+    library(plotly)
+    library(ggplot2)
+})
+
+load("output.RData")
+```
+
+#### Preprocess data.
+
+```{r, eval = FALSE}
+data = read.csv("data.csv") 
+
+data$NCES_district_locale <- gsub("-.*", "", data$NCES_district_locale)
+
+data <- dummy_cols(data, select_columns = "NCES_district_locale", remove_selected_columns = FALSE)
+colnames(data) <-  gsub("^NCES_district_locale_", "", colnames(data))
+
+data <- data %>% 
+    mutate(prevalence_rate = round((dyslexia_n / total_n) * 100, 2)) %>%
+    mutate(year_2017 = year - 2017) %>%
+    mutate(slope_2017 = year_2017) %>%
+    mutate(year_2018 = year - 2018) %>%
+    mutate(knot_2018 = as.integer(I(year >= 2018 ))) %>%
+    mutate(slope_change_2018 = year_2018 * knot_2018) %>%
+    mutate(year_2019 = year - 2019) %>%
+    mutate(knot_2019 = as.integer(I(year >= 2019 ))) %>%
+    mutate(slope_change_2019 = year_2019 * knot_2019) %>%
+    mutate(year_2020 = year - 2020) %>%
+    mutate(knot_2020 = as.integer(I(year >= 2020 ))) %>%
+    mutate(slope_change_2020 = year_2020 * knot_2020) %>%
+    mutate(year_2021 = year - 2021) %>%
+    mutate(knot_2021 = as.integer(I(year >= 2021 ))) %>%
+    mutate(slope_change_2021 = year_2021 * knot_2021) %>%
+    mutate(year_2022 = year - 2022) %>%
+    mutate(knot_2022 = as.integer(I(year >= 2022 ))) %>%
+    mutate(slope_change_2022 = year_2022 * knot_2022) 
+```
+
+## Visualize 
+
+```{r, echo = FALSE, eval = FALSE}
+geom_line_plot <- data %>%
+  group_by(NCES_district_locale, school_year) %>%
+  summarize(rate = mean(prevalence_rate)) %>%
+  ungroup() %>%
+  ggplot(aes(x = school_year, y = rate, group = NCES_district_locale, color = NCES_district_locale)) +
+  geom_line() +
+  geom_line(data = data %>%
+              group_by(school_year) %>%
+              summarize(rate = mean(prevalence_rate)),
+            aes(x = school_year, y = rate, group = 1), 
+            color = "black", size = 1.5, linetype = "solid") +
+  labs(title = "",
+       x = "School Year",
+       y = "Prevalence Rate (%)") +
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.title = element_text(face = "bold", size = 11),
+    legend.position ="top",
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 11),
+    legend.title.align = 0.5,
+    axis.line = element_line(),          
+    strip.text.x = element_text(color = "#3B3B3B", size = 11),
+    axis.line.x = element_line(color = "#3B3B3B"),
+    axis.text.x = element_text(size = 11, color = "#3B3B3B", angle = 45, hjust = 1),
+    axis.ticks = element_line(color = "#3B3B3B"),
+    axis.ticks.length = unit(0.1, "cm"),  
+    axis.text.y = element_text(size = 11, color = "#3B3B3B"),
+    axis.title = element_text(face = "bold", size = 11, color = "#3B3B3B")
+  ) + 
+  labs(color = "District Locale") 
+```
+
+
+```{r, echo = FALSE}
+geom_line_plot %>% ggplotly()
+```
+
+```{r, echo = FALSE, eval = FALSE}
+geom_col_plot <- data %>%
+  group_by(NCES_district_locale, school_year) %>%
+  summarize(rate = mean(prevalence_rate)) %>%
+  ggplot(aes(x = school_year, y = rate, group = NCES_district_locale, color = NCES_district_locale)) +
+  geom_col(aes(fill = NCES_district_locale)) + 
+  labs(title = "",
+       x = "School Year",
+       y = "Prevalence Rate (%)") +
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.title = element_text(face = "bold", size = 11),
+    legend.position ="top",
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 11),
+    legend.title.align = 0.5,
+    axis.line = element_line(),          
+    strip.text.x = element_text(color = "#3B3B3B", size = 11),
+    axis.line.x = element_line(color = "#3B3B3B"),
+    axis.text.x = element_text(size = 11, color = "#3B3B3B", angle = 45, hjust = 1),
+    axis.ticks = element_line(color = "#3B3B3B"),
+    axis.ticks.length = unit(0.1, "cm"),  
+    axis.text.y = element_text(size = 11, color = "#3B3B3B"),
+    axis.title = element_text(face = "bold", size = 11, color = "#3B3B3B")
+  ) +
+  labs(fill = "District Locale", color = "District Locale")
+```
+
+
+```{r, echo = FALSE}
+geom_col_plot %>% ggplotly()
+```
+
+## Null Model
+
+#### Check residuals for normality
+
+```{r, eval=FALSE}
+Model.0 <- lme(
+    prevalence_rate ~ 1, 
+    data = data,
+    method = "REML",
+    random = ~ 1 | district,
+    control = list(
+        maxIter = 100, 
+        msMaxIter = 100, 
+        tolerance = 1e-3, 
+        opt = "optim",
+        optimMethod = "BFGS"
+    )
+)
+```
+
+#### Cluster-robust variance estimation
+
+```{r}
+options(width = 100)
+Model.0.vcov <- vcovCR(Model.0, type = "CR2") # Calculate variance-covariance matrix
+Model.0.crve <-
+  coef_test(Model.0, vcov = Model.0.vcov , test = "Satterthwaite") # Test regression coefficients 
+Model.0.crve
+```
+
+#### Variance components
+
+```{r}
+VarCorr(Model.0, which = "var-cov")
+```
+
+#### Standard errors of variances
+
+```{r}
+sqrt(diag(varcomp_vcov(Model.0)))
+```
+####  Intraclass correlation coefficient (ICC)
+
+```{r}
+total_var <- as.numeric(VarCorr(Model.0)[[2]]) +
+  as.numeric(VarCorr(Model.0)[[1]]) 
+
+ICC.L2 = as.numeric(VarCorr(Model.0)[[1]]) / total_var
+ICC.L2
+```
+
+## Model 1
+
+#### Legislative trends in the prevalence rate of students identified as having characteristics of dyslexia in Texas school districts.
+
+```{r, eval = FALSE}
+Model.1 <- lme(
+  prevalence_rate ~ slope_2017 + slope_change_2018 + slope_change_2019 + 
+    slope_change_2020 + slope_change_2021 + slope_change_2022, 
+  data = data,
+  method = "REML",
+  random = ~ 1 | district,
+  correlation = corAR1(value = 0.2, form = ~ year | district),
+  control = list(
+    maxIter = 100, 
+    msMaxIter = 100, 
+    tolerance = 1e-3, 
+    opt = "optim",
+    optimMethod = "BFGS"
+  )
+)
+```
+
+#### Cluster-robust variance estimation
+
+```{r}
+options(width = 100)
+Model.1.vcov <- vcovCR(Model.1, type = "CR2") # Calculate variance-covariance matrix
+Model.1.crve <-
+  coef_test(Model.1, vcov = Model.1.vcov , test = "Satterthwaite") # Test regression coefficients 
+Model.1.crve
+```
+
+#### Variance components
+
+```{r}
+VarCorr(Model.1, which = "var-cov")
+```
+
+#### Standard errors of variances
+
+```{r}
+sqrt(diag(varcomp_vcov(Model.1)))
+```
+
+
+## Model 2
+
+#### Prevalence rate change of students identified as having characteristics of dyslexia over seven school years moderated by school district locale (i.e., city, suburban, town, or rural)
+
+```{r, eval = FALSE}
+Model.2 <- lme(
+    prevalence_rate ~ slope_2017 + slope_change_2018 + slope_change_2019 + 
+        slope_change_2020 + slope_change_2021 + slope_change_2022 +
+        (slope_2017 + slope_change_2018 + slope_change_2019 + 
+             slope_change_2020 + slope_change_2021 + slope_change_2022)*Suburb + 
+        (slope_2017 + slope_change_2018 + slope_change_2019 + 
+             slope_change_2020 + slope_change_2021 + slope_change_2022)*Town +
+        (slope_2017 + slope_change_2018 + slope_change_2019 + 
+             slope_change_2020 + slope_change_2021 + slope_change_2022)*Rural, 
+    data = data,
+    method = "REML",
+    random = ~ 1 | district,
+    correlation = corAR1(value = 0.2, form = ~ year | district),
+    control = list(
+        maxIter = 100, 
+        msMaxIter = 100, 
+        tolerance = 1e-3, 
+        opt = "optim",
+        optimMethod = "BFGS"
+    )
+)
+```
+
+#### Cluster-robust variance estimation
+
+```{r}
+options(width = 100)
+Model.2.vcov <- vcovCR(Model.2, type = "CR2") # Calculate variance-covariance matrix
+Model.2.crve <-
+    coef_test(Model.2, vcov = Model.2.vcov , test = "Satterthwaite") # Test regression coefficients 
+Model.2.crve
+```
+
+#### Variance components
+
+```{r}
+VarCorr(Model.2, which = "var-cov")
+```
+
+#### Standard errors of variances
+
+```{r}
+sqrt(diag(varcomp_vcov(Model.2)))
+```
+
+```{r, echo = FALSE, eval = FALSE}
+# save(geom_line_plot, geom_col_plot, Model.0, Model.1, Model.2, file = "output.RData")
+```
+

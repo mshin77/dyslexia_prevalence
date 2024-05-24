@@ -8,7 +8,7 @@ output:
     self_contained: false
 ---
 
-This webpage contains outputs and R codes used for the two-level multilevel modeling in Authors (2024). Data analysis scripts have been posted through an online data repository, accessible at <https://osf.io/gqpfk/?view_only=32be323dc9a6471c9bd721415c24debc>.
+This webpage contains outputs and R codes used for the two-level multilevel modeling in Simmons, Shin, and Hart (2024). Data analysis scripts have been posted through an online data repository, accessible at <https://osf.io/gqpfk>.
 
 
 ```{r setup, include = FALSE}

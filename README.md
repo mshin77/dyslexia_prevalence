@@ -1,1 +1,1 @@
-Simmons, M., Shin, M., & Hart, S. L. (in press). Dyslexia identification: Texas legislative trends in prevalence rate of students by school district locale. *Texas Education Review*. 
+Simmons, M., Shin, M., & Hart, S. L. (2024). Dyslexia identification: Texas legislative trends in prevalence rate of students by school district locale. *Texas Education Review, 12*(2), 6-24. https://doi.org/10.26153/tsw/51997 
